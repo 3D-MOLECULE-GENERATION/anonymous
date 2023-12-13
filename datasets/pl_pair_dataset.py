@@ -1,12 +1,22 @@
+import sys
+sys.path.append("/home/csy/work/3D/targetdiff_phar/")
+sys.path.append("/home/csy/work/3D/targetdiff_phar/datasets")
+from mol_tree import *
+import numpy as np
+import pandas as pd
+import rdkit
+import rdkit.Chem as Chem
+import rdkit.Chem.AllChem as AllChem
 import os
 import pickle
 import lmdb
 from torch.utils.data import Dataset
 from tqdm.auto import tqdm
-
+import glob
 from utils.data import PDBProtein, parse_sdf_file
-from .pl_data import ProteinLigandData, torchify_dict
-
+from pl_data import ProteinLigandData, torchify_dict
+from plip.structure.preparation import PDBComplex
+import traceback
 
 class PocketLigandPairDataset(Dataset):
 
@@ -60,28 +70,41 @@ class PocketLigandPairDataset(Dataset):
             index = pickle.load(f)
 
         num_skipped = 0
+        no_skipped = 0
         with db.begin(write=True, buffers=True) as txn:
             for i, (pocket_fn, ligand_fn, *_) in enumerate(tqdm(index)):
                 if pocket_fn is None: continue
                 try:
-                    # data_prefix = '/data/work/jiaqi/binding_affinity'
                     data_prefix = self.raw_path
+                    interactions = self.get_interaction(data_prefix, ligand_fn)
                     pocket_dict = PDBProtein(os.path.join(data_prefix, pocket_fn)).to_dict_atom()
+                    
+                    residue_dict = PDBProtein(os.path.join(data_prefix, pocket_fn)).to_dict_residue()
                     ligand_dict = parse_sdf_file(os.path.join(data_prefix, ligand_fn))
+                    interactions_dict = {"IntramolInteraction":interactions}
                     data = ProteinLigandData.from_protein_ligand_dicts(
                         protein_dict=torchify_dict(pocket_dict),
                         ligand_dict=torchify_dict(ligand_dict),
+                        residue_dict=torchify_dict(residue_dict),
+                        inter_dict=torchify_dict(interactions_dict),
                     )
+                    #data['intramolInteraction'] = interactions
+                    # 
+                    #data.intramolInteraction = interactions
+
                     data.protein_filename = pocket_fn
                     data.ligand_filename = ligand_fn
                     data = data.to_dict()  # avoid torch_geometric version issue
+                    
                     txn.put(
                         key=str(i).encode(),
                         value=pickle.dumps(data)
                     )
-                except:
+                    no_skipped += 1
+                except Exception as error:
                     num_skipped += 1
-                    print('Skipping (%d) %s' % (num_skipped, ligand_fn, ))
+                    print('Skipping (%d/%d) %s' % (num_skipped,num_skipped + no_skipped, ligand_fn, ))
+                    print(error, '\n')
                     continue
         db.close()
     
@@ -106,12 +129,227 @@ class PocketLigandPairDataset(Dataset):
         assert data.protein_pos.size(0) > 0
         return data
         
+    def extract_name(self, classname):
+        return classname.split('.')[-1].split("'")[0]    
+    
+    def get_interaction(self, data_prefix, ligand_fn):
+        # complex_1m4n_A_rec_1m7y_ppg_lig_tt_min_0.pdb
+        complex_path = data_prefix.replace("crossdocked_v1.1_rmsd1.0_pocket10", "complex")
+        complex_fn = ligand_fn.replace(".sdf", "_pocket10_complex")
+        c_p = os.path.join(complex_path, complex_fn)
+        pdb = glob.glob(c_p + "/*pdb")
+       
+        mol = PDBComplex()
+        mol.load_pdb(pdb[0])
+        mol.analyze() 
 
+        longnames = [x.longname for x in mol.ligands]
+        bsids = [":".join([x.hetid, x.chain, str(x.position)]) for x in mol.ligands]
+        indices = [j for j,x in enumerate(longnames) if x == 'ISK']        
+        
+        inter_list = [] 
+        for bs in bsids:
+            interactions = mol.interaction_sets[bs]
+            for inter in interactions.all_itypes:
+                inter_list = self.parse_interaction(inter, inter_list, mol)
+                
+        frag_vocab_dir = '/home/csy/work/3D/targetdiff_phar/datasets/frag_vocab.pickle' 
+        with open(frag_vocab_dir, 'rb') as fr:
+            Frag_vocab = pickle.load(fr)  
+        vocab_idx_dic = dict(zip(list(Frag_vocab.keys()), np.arange(len(list(Frag_vocab.keys())))))         
+        vocab_dir = '/home/csy/work/3D/targetdiff_phar/datasets/vocab.txt'
+        with open(vocab_dir, 'r') as f:
+            vocab = [x.strip() for x in f.readlines()]    
+        reference_vocab = np.load('/home/csy/work/3D/FLAG/utils/reference.npy', allow_pickle=True).item()  
+        vocab = Vocab(vocab)           
+        temp = pdb[0].split('/')
+        temp_dir = os.path.join('/'.join(temp[:-2]), temp[-1].replace("complex_", "").replace(".pdb", ".sdf"))
+        crossdock_dir_sdf = temp_dir.replace('complex', 'crossdocked_v1.1_rmsd1.0_pocket10')
+        suppl = Chem.SDMolSupplier(crossdock_dir_sdf)
+        mol_list = [x for x in suppl if x is not None]  
+        for i, mol in enumerate(mol_list):
+            tree_list = []
+            jt = MolTree(mol, reference_vocab)
+            tree_list.append(jt)  
+            pairbynode_smi = []
+            
+            
+            preprocessed_inter_list = []
+            for inter in inter_list:
+                interbynode=[]
+                for node in jt.nodes:                
+                    if (inter['interaction'] == 'hydroph_interaction' or 'halogenbond' or 'hbond'):
+                        if (inter["sdf_idx"] in node.clique) == True:
+                            interbynode.append(node.clique)                           
+                    if inter['interaction'] == 'pistack':
+                        if (sorted(inter["sdf_idx"]) == sorted(node.clique)) == True:
+                            interbynode.append(node.clique)                            
+                    if inter['interaction'] == 'pication':
+                        if len(inter["sdf_idx"]) > 1:
+                            if (sorted(inter["sdf_idx"]) == sorted(node.clique)) == True:
+                                interbynode.append(node.clique)                 
+                        else:
+                            if (inter["sdf_idx"][0] in node.clique) == True:
+                                interbynode.append(node.clique)  
+                
+                try:
+  
+                    if not len(interbynode) == 0: 
+                        a = Chem.MolFromSmiles(Chem.MolFragmentToSmiles(jt.mol, sum(interbynode, []), kekuleSmiles=True))
+                        smi = Chem.MolFragmentToSmiles(jt.mol, sum(interbynode, []), kekuleSmiles=True)
+
+                        inter['Fragment_smi'] = smi
+                        inter['Fragment_idx'] = vocab_idx_dic[smi]
+                        inter['Fragment_node'] = list(set(sorted(sum(interbynode, [])))) 
+                        if (inter['interaction'] == 'hydroph_interaction'):
+                            inter['interaction_onehot'] = [1,0,0,0,0]
+                            extract_inter = {key: value for key, value in inter.items() if (key == 'restype') 
+                                                                                                or (key == 'resnr')
+                                                                                                or (key == 'interaction')
+                                                                                                or (key == 'sdf_idx')
+                                                                                                or (key == 'Fragment_smi')
+                                                                                                or (key == 'Fragment_idx')
+                                                                                                or (key == 'Fragment_node')
+                                                                                                or (key == 'interaction_onehot')}                            
+                        if (inter['interaction'] == 'halogenbond'):
+                            inter['interaction_onehot'] = [0,1,0,0,0]
+                            extract_inter = {key: value for key, value in inter.items() if (key == 'restype') 
+                                                                                                or (key == 'resnr')
+                                                                                                or (key == 'interaction')
+                                                                                                or (key == 'sdf_idx')
+                                                                                                or (key == 'Fragment_smi')
+                                                                                                or (key == 'Fragment_idx')
+                                                                                                or (key == 'Fragment_node')
+                                                                                                or (key == 'interaction_onehot')}   
+                        if (inter['interaction'] == 'hbond'):
+                            inter['interaction_onehot'] = [0,0,1,0,0]
+                            extract_inter = {key: value for key, value in inter.items() if (key == 'restype') 
+                                                                                                or (key == 'resnr')
+                                                                                                or (key == 'interaction')
+                                                                                                or (key == 'sdf_idx')
+                                                                                                or (key == 'Fragment_smi')
+                                                                                                or (key == 'Fragment_idx')
+                                                                                                or (key == 'Fragment_node')
+                                                                                                or (key == 'interaction_onehot')} 
+                            
+                        if (inter['interaction'] == 'pistack'):
+                            inter['interaction_onehot'] = [0,0,0,1,0]
+                            extract_inter = {key: value for key, value in inter.items() if (key == 'restype') 
+                                                                                                or (key == 'resnr')
+                                                                                                or (key == 'interaction')
+                                                                                                or (key == 'sdf_idx')
+                                                                                                or (key == 'Fragment_smi')
+                                                                                                or (key == 'Fragment_idx')
+                                                                                                or (key == 'Fragment_node')
+                                                                                                or (key == 'interaction_onehot')} 
+                                                        
+                        if (inter['interaction'] == 'pication'):
+                            inter['interaction_onehot'] = [1,0,0,0,1]  
+                            extract_inter = {key: value for key, value in inter.items() if (key == 'restype') 
+                                                                                                or (key == 'resnr')
+                                                                                                or (key == 'interaction')
+                                                                                                or (key == 'sdf_idx')
+                                                                                                or (key == 'Fragment_smi')
+                                                                                                or (key == 'Fragment_idx')
+                                                                                                or (key == 'Fragment_node')
+                                                                                                or (key == 'interaction_onehot')} 
+                                                
+                        preprocessed_inter_list.append(extract_inter)    
+                except Exception as e:
+                    print(e)
+                    print("ERROR")
+                    err_msg = traceback.format_exc()
+                    print(err_msg)
+            if len(preprocessed_inter_list) == 0:
+                raise Exception("No interaction")
+
+        return preprocessed_inter_list
+
+            
+    def parse_interaction(self, inter, inter_list, mol):
+        
+        if (self.extract_name(str(inter.__class__)) == 'hydroph_interaction') == True:
+            inter_dict = inter._asdict()
+            inter_dict["interaction"] = self.extract_name(str(inter.__class__))
+            inter_dict["sdf_idx"] = inter.ligatom_orig_idx - 1 - min(mol.ligands[0].can_to_pdb.values())
+            inter_list.append(inter_dict)  
+             
+        if self.extract_name(str(inter.__class__)) == 'hbond':
+            inter_dict = inter._asdict()
+            inter_dict["interaction"] = self.extract_name(str(inter.__class__))
+            if inter.d_orig_idx > min(mol.ligands[0].can_to_pdb.values()):
+                inter_dict["sdf_idx"] = inter.d_orig_idx -1 - min(mol.ligands[0].can_to_pdb.values())
+            else:
+                inter_dict["sdf_idx"] = inter.a_orig_idx -1 - min(mol.ligands[0].can_to_pdb.values())    
+            inter_list.append(inter_dict)   
+            
+        if self.extract_name(str(inter.__class__)) == 'pistack':
+            inter_dict = inter._asdict()
+            inter_dict["interaction"] = self.extract_name(str(inter.__class__))
+            inter_dict["sdf_idx"] = [idx - 1 - min(mol.ligands[0].can_to_pdb.values()) for idx in inter_dict['ligandring'].atoms_orig_idx]
+            inter_list.append(inter_dict)  
+            
+        if self.extract_name(str(inter.__class__)) == 'halogenbond':
+            inter_dict = inter._asdict()
+            inter_dict["interaction"] = self.extract_name(str(inter.__class__))
+            inter_dict["sdf_idx"] = inter.don.x_orig_idx -1 - min(mol.ligands[0].can_to_pdb.values())
+            inter_list.append(inter_dict)       
+            
+        if self.extract_name(str(inter.__class__)) == 'pication':
+            inter_dict = inter._asdict()
+            inter_dict["interaction"] = self.extract_name(str(inter.__class__))        
+        
+            # charge쪽이 ligand
+            if min(inter.charge.atoms_orig_idx) > min(mol.ligands[0].can_to_pdb.values()):
+                inter_dict["sdf_idx"] = [idx -1 - min(mol.ligands[0].can_to_pdb.values()) for idx in inter_dict['charge'].atoms_orig_idx]
+            
+            # ring쪽이 ligand 
+            else:
+                inter_dict["sdf_idx"] = [idx -1 - min(mol.ligands[0].can_to_pdb.values()) for idx in inter_dict['ring'].atoms_orig_idx]
+            inter_list.append(inter_dict)  
+        
+        return inter_list              
+                 
+             
+        
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('path', type=str)
-    args = parser.parse_args()
-
-    dataset = PocketLigandPairDataset(args.path)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('path', type=str)
+    # args = parser.parse_args()
+    path = '/home/csy/work/3D/targetdiff_phar/data/crossdocked_v1.1_rmsd1.0_pocket10'
+    dataset = PocketLigandPairDataset(path)
     print(len(dataset), dataset[0])
+    for idx in range(len(dataset)):
+        print(dataset[idx].protein_filename)
+        print(dataset[idx].ligand_filename)
+
+
+"""
+protein_element >> protein_atom_name(N or CA or C ... ...)을 index로
+protein_molecule_name 
+protein_pos
+protein_is_backbone >> protein을 구성하는 원자가 backbone인지 residue인지
+protein_atom_name >> protein을 구성하는 원자의 symbol (N or CA or C ... ...)
+protein_atom_to_aa_type >>  protein을 구성하는 각 원자가 어떤 아미노산에 해당하는지
+protein_atom2residue >> resiude index로 변환
+ligand_smiles
+ligand_element
+ligand_pos
+ligand_bond_index
+ligand_bond_type
+ligand_center_of_mass
+ligand_atom_feature
+ligand_hybridization
+amino_acid >> protein을 구성하는 각 아미노산의 index
+res_idx >> 전체 protein structure에서 몇 번째 index에 해당하는 아미노산인지
+center_of_mass
+pos_CA
+pos_C
+pos_N
+pos_O
+ligand_nbh_list
+residue_pos
+protein_filename
+ligand_filename
+"""
