@@ -3,7 +3,7 @@
 
 <table class="center">
 <tr>
-  <td style="text-align:center;"><b>Forward process</b></td>
+  <td style="text-align:center;font-size:40;"><b>Forward process</b></td>
   <td style="text-align:center;"><b>Reverse process</b></td>
 </tr>
 <tr>
