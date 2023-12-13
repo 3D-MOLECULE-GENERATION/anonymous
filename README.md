@@ -107,3 +107,4 @@ The main results for the proposed model are presented in the table below. For a 
 <img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/DifferenceRMAD.png" width="400">
 
 ### Demo video of Molecular Dynamics about Generated Molecule
+<img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/MD_result.gif" width="400">
