@@ -90,7 +90,7 @@ Note: It will take some time to prepare pqdqt and pqr files when you run the eva
 
 
 ## Result
-The main results for the proposed model are presented in the table below. For a more comprehensive overview of the results obtained with our model, please refer to the report.
+The main results for the proposed model are presented in the table below. For a more comprehensive overview of the results obtained with our model, please refer to the **Report**.
 
 ### Property of Generated Molecule
 | Model      | VinaScore  | VinaMin   | VinaDock   | HighAiffinity | 
