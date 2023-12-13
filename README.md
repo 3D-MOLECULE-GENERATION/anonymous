@@ -90,7 +90,7 @@ Note: It will take some time to prepare pqdqt and pqr files when you run the eva
 
 
 ## Result
-The main results for the proposed model are presented in the table below. For a more comprehensive overview of the results obtained with our model, please refer to the manuscript.
+The main results for the proposed model are presented in the table below. For a more comprehensive overview of the results obtained with our model, please refer to the report.
 
 ### Property of Generated Molecule
 | Model      | VinaScore  | VinaMin   | VinaDock   | HighAiffinity | 
@@ -103,8 +103,13 @@ The main results for the proposed model are presented in the table below. For a 
 | Ours       | -6.64 | -7.20 | -8.16  |  0.47  | 
 | *Reference*  | -6.36 | -6.71 | -7.45  |  -  | 
 
-### Distribution of RMSD before and after Docking
-<img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/DifferenceRMAD.png" width="400">
-
-### Demo video of Molecular Dynamics about Generated Molecule
-<img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/MD_result.gif" width="400">
+<table class="center">
+<tr>
+  <td style="text-align:center;"><b>Distribution of RMSD before and after Docking</b></td>
+  <td style="text-align:center;"><b>Demo video of Molecular Dynamics about Generated Molecule</b></td>
+</tr>
+<tr>
+  <td><img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/DifferenceRMAD.png" width="400"></td>
+  <td><img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/MD_result.gif" width="400"></td>
+</tr>
+</table>
