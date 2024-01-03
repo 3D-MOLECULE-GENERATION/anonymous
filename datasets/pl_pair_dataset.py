@@ -323,33 +323,3 @@ if __name__ == '__main__':
     for idx in range(len(dataset)):
         print(dataset[idx].protein_filename)
         print(dataset[idx].ligand_filename)
-
-
-"""
-protein_element >> protein_atom_name(N or CA or C ... ...)을 index로
-protein_molecule_name 
-protein_pos
-protein_is_backbone >> protein을 구성하는 원자가 backbone인지 residue인지
-protein_atom_name >> protein을 구성하는 원자의 symbol (N or CA or C ... ...)
-protein_atom_to_aa_type >>  protein을 구성하는 각 원자가 어떤 아미노산에 해당하는지
-protein_atom2residue >> resiude index로 변환
-ligand_smiles
-ligand_element
-ligand_pos
-ligand_bond_index
-ligand_bond_type
-ligand_center_of_mass
-ligand_atom_feature
-ligand_hybridization
-amino_acid >> protein을 구성하는 각 아미노산의 index
-res_idx >> 전체 protein structure에서 몇 번째 index에 해당하는 아미노산인지
-center_of_mass
-pos_CA
-pos_C
-pos_N
-pos_O
-ligand_nbh_list
-residue_pos
-protein_filename
-ligand_filename
-"""
