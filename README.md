@@ -43,7 +43,8 @@ To train the model from scratch, you need to download the preprocessed lmdb file
 
 To evaluate the model on the test set, you need to download _and_ unzip the `test_set.zip`. It includes the original PDB files that will be used in Vina Docking.
 
-If you want to process the dataset from scratch, you need to download CrossDocked2020 v1.1 from [here](https://bits.csb.pitt.edu/files/crossdock2020/), save it into `data/CrossDocked2020`, and run the scripts in `scripts/data_preparation`:
+
+**If you want to process the dataset from scratch,** you need to download CrossDocked2020 v1.1 from [here](https://bits.csb.pitt.edu/files/crossdock2020/), save it into `data/CrossDocked2020`, and run the scripts in `scripts/data_preparation`:
 * [clean_crossdocked.py](scripts/data_preparation/clean_crossdocked.py) will filter the original dataset and keep the ones with RMSD < 1A.
 It will generate a `index.pkl` file and create a new directory containing the original filtered data (corresponds to `crossdocked_v1.1_rmsd1.0.tar.gz` in the drive). *You don't need these files if you have downloaded .lmdb file.*
     ```bash
@@ -58,7 +59,7 @@ It will generate a `index.pkl` file and create a new directory containing the or
     ```bash
     python scripts/data_preparation/split_pl_dataset.py --path data/crossdocked_v1.1_rmsd1.0_pocket10 --dest data/crossdocked_pocket10_pose_split.pt --fixed_split data/split_by_name.pt
     ```
-
+* [get_pharmacophore.ipynb](datasets/get_pharmacophore.ipynb) will identify pharmacophores in complex data comprising a protein's pocket and the ligand. Through this process, it is possible to extract information about the indices and position of atoms that make up the pharmacophore, as well as details about the intermolecular interactions they undergo.
 ## Training
 ### Training from scratch
 ```bash
@@ -68,13 +69,7 @@ python scripts/train_diffusion.py configs/training.yml
 ## Sampling
 ### Sampling for pockets in the testset
 ```bash
-python scripts/sample_diffusion.py configs/sampling.yml --data_id {i} # Replace {i} with the index of the data. i should be between 0 and 99 for the testset.
-```
-
-### Sampling from pdb file
-To sample from a protein pocket (a 10A region around the reference ligand):
-```bash
-python scripts/sample_for_pocket.py configs/sampling.yml --pdb_path examples/1h36_A_rec_1h36_r88_lig_tt_docked_0_pocket10.pdb
+python scripts/sample_diffusion.py configs/sampling.yml --data_id {i}
 ```
 
 ## Evaluation
