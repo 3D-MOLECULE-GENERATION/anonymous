@@ -1,8 +1,8 @@
 import os
 import sys
-os.chdir('/home/csy/work/3D/PharDiff')
-sys.path.append("/home/csy/work/3D/PharDiff/utils")
-sys.path.append("/home/csy/work/3D/PharDiff")
+os.chdir('./3D-MOL-GENERATION/anonymous')
+sys.path.append("./3D-MOL-GENERATION/anonymous/utils")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import argparse
 import multiprocessing as mp
 import pickle
@@ -29,7 +29,7 @@ from models.diffusion import PharDiff, log_sample_categorical
 from scripts.sample_diffusion import sample_diffusion_ligand
 import argparse
 import os, sys
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import numpy as np
 from rdkit import Chem
 from rdkit import RDLogger
@@ -45,7 +45,7 @@ from utils.evaluation.docking_vina import VinaDockingTask
 from datasets.pl_data import ProteinLigandData, torchify_dict
 import argparse
 import os, sys
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import numpy as np
 from rdkit import Chem
 from rdkit import RDLogger
@@ -60,11 +60,8 @@ from utils.evaluation.docking_qvina import QVinaDockingTask
 from utils.evaluation.docking_vina import VinaDockingTask
 
 eval_step = -1
-#r = torch.load('/home/csy/work/3D/PharDiff/scripts/pdgfr/1h00_B_FAP_result.pt')
-
-#result_path = '/home/csy/work/3D/PharDiff/scripts/PDGFRb/data/ligand_result_PINN_1000.pickle'
-#result_path = '/home/csy/work/3D/PharDiff/scripts/PDGFRb/data/ligand_result_PINN_1000.pickle'
-result_path = '/home/csy/work/3D/PharDiff/scripts/pdgfr/1h00_B_FAP_result.pickle'
+#
+result_path = './'
 with open(result_path, 'rb') as fr:
     r = pickle.load(fr)
 
@@ -136,7 +133,7 @@ for sample_idx, (pred_pos, pred_v) in enumerate(tqdm(zip(all_pred_ligand_pos, al
     elif docking_mode in ['vina_score', 'vina_dock']:
         vina_task = VinaDockingTask.from_generated_mol(
             mol, r['data'].ligand_filename, 
-            protein_root ='/home/csy/work/3D/PharDiff/scripts/pdgfr/1h00_pocket.pdb') # , protein_root=args.protein_root
+            protein_root ='./3D-MOL-GENERATION/anonymous/real_world_validation/data/protein.pdb') # , protein_root=args.protein_root
         score_only_results = vina_task.run(mode='score_only', exhaustiveness=16)
         minimize_results = vina_task.run(mode='minimize', exhaustiveness=16)
         vina_results = {
@@ -200,7 +197,3 @@ print('QED:   [Docking Top1]: %.3f ' % (qed[ind]))
 print('SA:    [Docking Top1]: %.3f ' % (sa[ind]))
 print('LogP:    [Docking Top1]: %.3f ' % (logp[ind]))
 print('Lipinski:    [Docking Top1]: %.3f ' % (li[ind]))
-
-# import pickle
-# with open('/home/csy/work/3D/PharDiff/scripts/PDGFRb/results/result_PINN_ref_100.pickle', 'wb') as f:
-#     pickle.dump(results, f)

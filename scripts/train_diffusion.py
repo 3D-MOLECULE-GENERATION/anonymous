@@ -1,7 +1,7 @@
 import argparse
 import os, sys
 import shutil
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import numpy as np
 import torch
 import torch.utils.tensorboard
@@ -38,7 +38,7 @@ def get_auroc(y_true, y_pred, feat_mode):
     return avg_auroc / len(y_true)
 
 
-os.chdir('/home/csy/work/3D/PharDiff')
+os.chdir('./3D-MOL-GENERATION/anonymous')
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('config', type=str)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_report_iter', type=int, default=100)
     parser.add_argument('--mode', type=str, default='disabled')
     args = parser.parse_args()
-    #args.config = '/home/csy/work/3D/PharDiff/configs/training.yml'
+    #args.config = './3D-MOL-GENERATION/anonymous/configs/training.yml'
     # Load configs
     config = misc.load_config(args.config)
     config_name = os.path.basename(args.config)[:os.path.basename(args.config).rfind('.')]
@@ -113,7 +113,7 @@ if __name__ == '__main__':
                             follow_batch=FOLLOW_BATCH, exclude_keys=collate_exclude_keys)
 
     # Vocab
-    with open("/home/csy/work/3D/targetdiff_phar/datasets/vocab_super.pickle", "rb") as f:
+    with open("./3D-MOL-GENERATION/anonymous/datasets/vocab_super.pickle", "rb") as f:
         voc = pickle.load(f)
     prep_vocab = {}
     threshold = 340000

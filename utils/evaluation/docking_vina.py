@@ -179,13 +179,13 @@ class VinaDockingTask(BaseDockingTask):
         )
         protein_path = os.path.join(protein_root, protein_fn)
         #print(protein_path)
-        #protein_path='/home/csy/work/3D/PharDiff/scripts/real_world_validation/PDGFRb/off_target/PDGFRa/receptor.pdb'
-        #protein_path='/home/csy/work/3D/PharDiff/scripts/real_world_validation/PDGFRb/receptor.pdb'
-        #protein_path = '/home/csy/work/3D/PharDiff/scripts/real_world_validation/PDGFRb/off_target/FLT3/receptor.pdb'
-        #protein_path = '/home/csy/work/3D/PharDiff/scripts/real_world_validation/PDGFRb/off_target/KIT/receptor.pdb'
-        #protein_path = '/home/csy/work/3D/PharDiff/scripts/real_world_validation/PDGFRb/off_target/VEGFR2/receptor.pdb'
-        #protein_path = '/home/csy/work/3D/PharDiff/scripts/real_world_validation/AKT1/receptor.pdb'
-        protein_path = '/home/csy/work/3D/PharDiff/scripts/real_world_validation/CDK2/receptor.pdb'
+        #protein_path='./3D-MOL-GENERATION/anonymous/scripts/real_world_validation/PDGFRb/off_target/PDGFRa/receptor.pdb'
+        #protein_path='./3D-MOL-GENERATION/anonymous/scripts/real_world_validation/PDGFRb/receptor.pdb'
+        #protein_path = './3D-MOL-GENERATION/anonymous/scripts/real_world_validation/PDGFRb/off_target/FLT3/receptor.pdb'
+        #protein_path = './3D-MOL-GENERATION/anonymous/scripts/real_world_validation/PDGFRb/off_target/KIT/receptor.pdb'
+        #protein_path = './3D-MOL-GENERATION/anonymous/scripts/real_world_validation/PDGFRb/off_target/VEGFR2/receptor.pdb'
+        #protein_path = './3D-MOL-GENERATION/anonymous/scripts/real_world_validation/AKT1/receptor.pdb'
+        protein_path = './3D-MOL-GENERATION/anonymous/scripts/real_world_validation/CDK2/receptor.pdb'
                         
         return cls(protein_path, ligand_rdmol, **kwargs)
 

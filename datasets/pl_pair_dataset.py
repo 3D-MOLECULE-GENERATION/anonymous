@@ -153,14 +153,14 @@ class PocketLigandPairDataset(Dataset):
             for inter in interactions.all_itypes:
                 inter_list = self.parse_interaction(inter, inter_list, mol)
                 
-        frag_vocab_dir = '/home/csy/work/3D/targetdiff_phar/datasets/frag_vocab.pickle' 
+        frag_vocab_dir = './3D-MOL-GENERATION/anonymous/datasets/frag_vocab.pickle' 
         with open(frag_vocab_dir, 'rb') as fr:
             Frag_vocab = pickle.load(fr)  
         vocab_idx_dic = dict(zip(list(Frag_vocab.keys()), np.arange(len(list(Frag_vocab.keys())))))         
-        vocab_dir = '/home/csy/work/3D/targetdiff_phar/datasets/vocab.txt'
+        vocab_dir = './3D-MOL-GENERATION/anonymous/datasets/vocab.txt'
         with open(vocab_dir, 'r') as f:
             vocab = [x.strip() for x in f.readlines()]    
-        reference_vocab = np.load('/home/csy/work/3D/FLAG/utils/reference.npy', allow_pickle=True).item()  
+        reference_vocab = np.load('./3D-MOL-GENERATION/anonymous/utils/reference.npy', allow_pickle=True).item()  
         vocab = Vocab(vocab)           
         temp = pdb[0].split('/')
         temp_dir = os.path.join('/'.join(temp[:-2]), temp[-1].replace("complex_", "").replace(".pdb", ".sdf"))
@@ -317,7 +317,7 @@ if __name__ == '__main__':
     # parser = argparse.ArgumentParser()
     # parser.add_argument('path', type=str)
     # args = parser.parse_args()
-    path = '/home/csy/work/3D/targetdiff_phar/data/crossdocked_v1.1_rmsd1.0_pocket10'
+    path = './3D-MOL-GENERATION/anonymous/data/crossdocked_v1.1_rmsd1.0_pocket10'
     dataset = PocketLigandPairDataset(path)
     print(len(dataset), dataset[0])
     for idx in range(len(dataset)):

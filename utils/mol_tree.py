@@ -1,6 +1,6 @@
 import sys
-sys.path.append("/home/csy/work/3D/PharDiff")
-sys.path.append("/home/csy/work/3D/PharDiff/utils")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
+sys.path.append("./3D-MOL-GENERATION/anonymous/utils")
 import rdkit
 import rdkit.Chem as Chem
 import copy
@@ -104,7 +104,7 @@ class MolTree(object):
         self.smiles = Chem.MolToSmiles(mol)
         self.mol = mol
         self.num_rotatable_bond = 0
-        ref_path = '/home/csy/work/3D/FLAG/utils/reference.npy'
+        ref_path = './3D-MOL-GENERATION/anonymous/utils/reference.npy'
         reference_vocab = np.load(ref_path, allow_pickle=True).item()
         reference = defaultdict(int)
         for k, v in reference_vocab.items():
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     vocab = {}
     cnt = 0
     rot = 0
-    reference_vocab = np.load('/home/csy/work/3D/FLAG/utils/reference.npy', allow_pickle=True).item()
+    reference_vocab = np.load('./3D-MOL-GENERATION/anonymous/utils/reference.npy', allow_pickle=True).item()
     reference = defaultdict(int)
     for k, v in reference_vocab.items():
         reference[k] = v

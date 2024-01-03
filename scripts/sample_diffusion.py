@@ -2,7 +2,7 @@ import argparse
 import os, sys
 import shutil
 import time
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import numpy as np
 import torch
 from torch_geometric.data import Batch
@@ -27,7 +27,7 @@ def unbatch_v_traj(ligand_v_traj, n_data, ligand_cum_atoms):
     all_step_v = [np.stack(step_v) for step_v in all_step_v]  # num_samples * [num_steps, num_atoms_i]
     return all_step_v
 
-with open("/home/csy/work/3D/targetdiff_phar/datasets/vocab_super.pickle", "rb") as f:
+with open("./3D-MOL-GENERATION/anonymous/datasets/vocab_super.pickle", "rb") as f:
     voc = pickle.load(f)
 prep_vocab = {}
 threshold = 0
@@ -203,9 +203,9 @@ if __name__ == '__main__':
     parser.add_argument('--result_path', type=str, default='./outputs')
     parser.add_argument('--frag', type=str, default=False)
     args = parser.parse_args()
-    #args.config = '/home/csy/work/3D/PharDiff/configs/sampling.yml'
+
     logger = misc.get_logger('sampling')
-    os.chdir('/home/csy/work/3D/PharDiff')
+    os.chdir('./3D-MOL-GENERATION/anonymous')
     # Load config
     config = misc.load_config(args.config)
     #logger.info(config)

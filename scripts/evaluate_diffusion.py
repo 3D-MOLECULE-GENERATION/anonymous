@@ -1,6 +1,6 @@
 import argparse
 import os, sys
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import numpy as np
 from rdkit import Chem
 from rdkit import RDLogger
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--exhaustiveness', type=int, default=16)
     args = parser.parse_args()
 
-    # args.sample_path = '/home/csy/work/3D/PharDiff/outputs_2023_11_09__12_27_14Frag300_1'
+    # args.sample_path = './3D-MOL-GENERATION/anonymous/outputs_2023_11_09__12_27_14Frag300_1'
     # args.docking_mode = 'vina_score'
     # args.protein_root = '/home/csy/work/3D/targetdiff/data/test_set'
     

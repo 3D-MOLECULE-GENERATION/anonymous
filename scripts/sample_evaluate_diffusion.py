@@ -1,6 +1,6 @@
 import argparse
 import os, sys
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 import numpy as np
 from rdkit import Chem
 from rdkit import RDLogger
@@ -44,10 +44,6 @@ if __name__ == '__main__':
     parser.add_argument('--docking_mode', type=str, choices=['qvina', 'vina_score', 'vina_dock', 'none'])
     parser.add_argument('--exhaustiveness', type=int, default=16)
     args = parser.parse_args()
-
-    #args.sample_path = '/home/csy/work/3D/targetdiff_PINN/selected_output'
-    # args.docking_mode = 'vina_score'
-    # args.protein_root = '/home/csy/work/3D/targetdiff/data/test_set'
     
     result_path = os.path.join(args.sample_path, 'eval_results')
     os.makedirs(result_path, exist_ok=True)
