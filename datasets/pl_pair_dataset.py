@@ -1,6 +1,6 @@
 import sys
-sys.path.append("/home/csy/work/3D/targetdiff_phar/")
-sys.path.append("/home/csy/work/3D/targetdiff_phar/datasets")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
+sys.path.append("./3D-MOL-GENERATION/anonymous/datasets")
 from mol_tree import *
 import numpy as np
 import pandas as pd

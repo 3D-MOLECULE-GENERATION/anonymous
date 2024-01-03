@@ -1,5 +1,5 @@
 import os, sys
-sys.path.append("/home/csy/work/3D/PharDiff")
+sys.path.append("./3D-MOL-GENERATION/anonymous")
 
 import numpy as np
 import torch
@@ -8,7 +8,6 @@ import torch.nn.functional as F
 from torch_scatter import scatter_sum, scatter_mean
 from tqdm.auto import tqdm
 from models.common import compose_context, ShiftedSoftplus
-from models.egnn import EGNN
 from models.uni_transformer import UniTransformerO2TwoUpdateGeneral
 
 VDWRADII = {
@@ -51,15 +50,6 @@ def get_refine_net(refine_net_type, config):
             r_max=config.r_max,
             x2h_out_fc=config.x2h_out_fc,
             sync_twoup=config.sync_twoup
-        )
-    elif refine_net_type == 'egnn':
-        refine_net = EGNN(
-            num_layers=config.num_layers,
-            hidden_dim=config.hidden_dim,
-            edge_feat_dim=config.edge_feat_dim,
-            num_r_gaussian=1,
-            k=config.knn,
-            cutoff_mode=config.cutoff_mode
         )
     else:
         raise ValueError(refine_net_type)
@@ -275,7 +265,7 @@ class PharDiff(nn.Module):
         # atom type diffusion schedule in log space
         if config.v_beta_schedule == 'cosine':
             alphas_v = cosine_beta_schedule(self.num_timesteps, config.v_beta_s)
-            # print('cosine v alpha schedule applied!')
+
         else:
             raise NotImplementedError
         log_alphas_v = np.log(alphas_v)
@@ -288,7 +278,7 @@ class PharDiff(nn.Module):
         self.register_buffer('Lt_history', torch.zeros(self.num_timesteps))
         self.register_buffer('Lt_count', torch.zeros(self.num_timesteps))
 
-        # model definition
+
         self.hidden_dim = config.hidden_dim
         self.num_classes = ligand_atom_feature_dim
         if self.config.node_indicator:
@@ -296,13 +286,13 @@ class PharDiff(nn.Module):
         else:
             emb_dim = self.hidden_dim
 
-        # atom embedding
+
         self.protein_atom_emb = nn.Linear(protein_atom_feature_dim, emb_dim)
 
-        # center pos
+
         self.center_pos_mode = config.center_pos_mode  # ['none', 'protein']
 
-        # time embedding
+
         self.time_emb_dim = config.time_emb_dim
         self.time_emb_mode = config.time_emb_mode  # ['simple', 'sin']
         if self.time_emb_dim > 0:
@@ -331,10 +321,10 @@ class PharDiff(nn.Module):
 
     def forward(self, protein_pos, protein_v, batch_protein, init_ligand_pos, init_ligand_v, batch_ligand, fix_mask,
                 time_step=None, return_all=False, fix_x=False):
-        # init_ligand_v : ligand_v_perturbed
+
         batch_size = batch_protein.max().item() + 1
         init_ligand_v = F.one_hot(init_ligand_v, self.num_classes).float()
-        # time embedding
+
         if self.time_emb_dim > 0:
             if self.time_emb_mode == 'simple':
                 input_ligand_feat = torch.cat([
@@ -392,7 +382,7 @@ class PharDiff(nn.Module):
             })
         return preds
 
-    # atom type diffusion process
+
     def q_v_pred_one_timestep(self, log_vt_1, t, batch):
         # q(vt | vt-1)
         log_alpha_t = extract(self.log_alphas_v, t, batch)
@@ -414,11 +404,10 @@ class PharDiff(nn.Module):
             log_v0 + log_cumprod_alpha_t,
             log_1_min_cumprod_alpha - np.log(self.num_classes)
         )  
-        ## AppendixE에 Line.5 >> log_c를 구하는 과정
-        ## Eq.4 에서 C[star]의 우항 : alpha_bar_t_minus_1 + (1_minus_alpha_bar_t-1/K) 
+
         return log_probs
 
-    ## v_t를 구하는 과정.
+
     def q_v_sample(self, log_v0, t, batch):
         log_qvt_v0 = self.q_v_pred(log_v0, t, batch)
         sample_index = log_sample_categorical(log_qvt_v0)
@@ -430,7 +419,7 @@ class PharDiff(nn.Module):
     def q_v_posterior(self, log_v0, log_vt, t, batch):
         # q(vt-1 | vt, v0) = q(vt | vt-1, x0) * q(vt-1 | x0) / q(vt | x0)
         t_minus_1 = t - 1
-        # Remove negative values, will not be used anyway for final decoder
+
         t_minus_1 = torch.where(t_minus_1 < 0, torch.zeros_like(t_minus_1), t_minus_1)
         log_qvt1_v0 = self.q_v_pred(log_v0, t_minus_1, batch)
         unnormed_logprobs = log_qvt1_v0 + self.q_v_pred_one_timestep(log_vt, t, batch)
@@ -472,7 +461,7 @@ class PharDiff(nn.Module):
                 return self.sample_time(num_graphs, device, method='symmetric')
 
             Lt_sqrt = torch.sqrt(self.Lt_history + 1e-10) + 0.0001
-            Lt_sqrt[0] = Lt_sqrt[1]  # Overwrite decoder term with L1.
+            Lt_sqrt[0] = Lt_sqrt[1]  
             pt_all = Lt_sqrt / Lt_sqrt.sum()
 
             time_step = torch.multinomial(pt_all, num_samples=num_graphs, replacement=True)
@@ -514,10 +503,7 @@ class PharDiff(nn.Module):
     def get_diffusion_loss(
             self, protein_pos, protein_v, batch_protein, ligand_pos, ligand_v, batch_ligand, batch, time_step=None, train=True
     ):
-    # def get_diffusion_loss(
-    #         self, protein_pos, protein_v, batch_protein, ligand_pos, ligand_v, batch_ligand, 
-    #         ligand_element_batch, fix_node, fix_node_batch, time_step=None, train=True
-    # ):
+
         """     protein_pos=gt_protein_pos,
                 protein_v=batch.protein_atom_feature.float(),
                 batch_protein=batch.protein_element_batch,
@@ -569,17 +555,9 @@ class PharDiff(nn.Module):
         
         ligand_v_perturbed, log_ligand_vt = self.q_v_sample(log_ligand_v0, time_step, batch_ligand)
 
-        """
-        # ligand_v_perturbed  => ligand_v
-        # log_ligand_vt => log_ligand_v0
-        ligand_v_perturbed[a_pos_mask[:,0] == 1] = ligand_v[a_pos_mask[:,0] == 1] 
-        log_ligand_vt[a_pos_mask[:,0] == 1] = log_ligand_v0[a_pos_mask[:,0] == 1] 
-        """
+
         ligand_v_perturbed[a_pos_mask[:,0] == 1] = ligand_v[a_pos_mask[:,0] == 1] 
         log_ligand_vt[a_pos_mask[:,0] == 1] = log_ligand_v0[a_pos_mask[:,0] == 1]
-
-        # 3. forward-pass NN, feed perturbed pos and v, output noise
-        # protein_v : protein atom features such as element types and amino acid types.
         
         preds = self(
             protein_pos=protein_pos,
@@ -607,7 +585,7 @@ class PharDiff(nn.Module):
                 x0=pred_ligand_pos, xt=ligand_pos_perturbed, t=time_step, batch=batch_ligand)
         else:
             raise ValueError
-#######################
+
         # atom pos loss
         if self.model_mean_type == 'C0':
             target, pred = ligand_pos, pred_ligand_pos
@@ -683,7 +661,6 @@ class PharDiff(nn.Module):
         
         loss = loss_pos + loss_v * self.loss_v_weight
         
-        # For Physics informed ML
         if train == True:
             dm_min = 0.5
             total_energy = 0
@@ -702,36 +679,21 @@ class PharDiff(nn.Module):
                 ligand_vdw_radii = torch.tensor([
                     VDWRADII[atom_idx] for atom_idx in pred_log_atom_type
                 ])       
-                ## protein atom에 대한 vdw도 계산해야 함
                 dm_0 = ligand_vdw_radii.unsqueeze(1).repeat(1, protein_coor.size(0)).cuda()
 
                 N = 6
-                # vdw_term1 = torch.pow(dm_0 / dm, 2 * N)
-                # vdw_term2 = -2 * torch.pow(dm_0 / dm, N)
                 vdw_term1 = torch.pow(1 / dm, 2 * N)
                 vdw_term2 = -2 * torch.pow(1 / dm, N)
                 
                 energy = vdw_term1 + vdw_term2
                 energy = energy.clamp(max=100)
                 
-                # der = torch.zeros_like(ligand_coor)
-                # for x in torch.sum(energy, -1):
-                #     der += torch.autograd.grad(x, ligand_coor, retain_graph=True, create_graph=True)[0]
-                # der = torch.pow(der.sum(1), 2).mean()
-                
                 der = torch.autograd.grad(energy.sum(), dm, retain_graph=True, create_graph=True)[0]
                 der = der.sum()
                 total_energy += der
         else:
             total_energy = 0
-        """
-        for ligatom_idx in range(energy.shape[0]):
-            for protatom_idx in range(energy[ligatom_idx].shape[0]):
-                print(torch.autograd.grad(energy[ligatom_idx, protatom_idx], dm[ligatom_idx, protatom_idx], retain_graph=True, create_graph=True, allow_unused=True)[0])
-                print(energy[ligatom_idx, protatom_idx])
-                print(dm[ligatom_idx, protatom_idx])
-                break
-        """
+            
 ########################
         return {
             'loss_pos': loss_pos,
