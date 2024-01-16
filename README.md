@@ -36,7 +36,7 @@ conda install rdkit openbabel tensorboard pyyaml easydict python-lmdb -c conda-f
 ```
 ## Data
 The data used for training / evaluating the model are organized in the [data](https://drive.google.com/drive/folders/1S_GEFPvnpkiwyi22slxdzlR0-boUDCTI?usp=drive_link) Google Drive folder.
-
+The data used for training/evaluation would have been provided through the submission site in a folder named 'Data'.
 To train the model from scratch, you need to download the preprocessed lmdb file and split file:
 * `crossdocked_v1.1_rmsd1.0_pocket10_processed_final.lmdb`
 * `crossdocked_pocket10_pose_split.pt`
