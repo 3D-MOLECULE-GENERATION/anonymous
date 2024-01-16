@@ -52,9 +52,8 @@ if __name__ == '__main__':
     parser.add_argument('--exhaustiveness', type=int, default=16)
     args = parser.parse_args()
 
-    # args.sample_path = './3D-MOL-GENERATION/anonymous/outputs_2023_11_09__12_27_14Frag300_1'
-    # args.docking_mode = 'vina_score'
-    # args.protein_root = '/home/csy/work/3D/targetdiff/data/test_set'
+
+
     
     result_path = os.path.join(args.sample_path, 'eval_results')
     os.makedirs(result_path, exist_ok=True)
