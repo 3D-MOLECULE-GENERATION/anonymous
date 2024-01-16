@@ -213,19 +213,8 @@ class PharDiff(nn.Module):
         # variance schedule
         self.model_mean_type = config.model_mean_type  # ['noise', 'C0']
         self.loss_v_weight = config.loss_v_weight
-        # self.v_mode = config.v_mode
-        # assert self.v_mode == 'categorical'
-        # self.v_net_type = getattr(config, 'v_net_type', 'mlp')
-        # self.bond_loss = getattr(config, 'bond_loss', False)
-        # self.bond_net_type = getattr(config, 'bond_net_type', 'pre_att')
-        # self.loss_bond_weight = getattr(config, 'loss_bond_weight', 0.)
-        # self.loss_non_bond_weight = getattr(config, 'loss_non_bond_weight', 0.)
 
         self.sample_time_method = config.sample_time_method  # ['importance', 'symmetric']
-        # self.loss_pos_type = config.loss_pos_type  # ['mse', 'kl']
-        # print(f'Loss pos mode {self.loss_pos_type} applied!')
-        # print(f'Loss bond net type: {self.bond_net_type} '
-        #       f'bond weight: {self.loss_bond_weight} non bond weight: {self.loss_non_bond_weight}')
 
         if config.beta_schedule == 'cosine':
             alphas = cosine_beta_schedule(config.num_diffusion_timesteps, config.pos_beta_s) ** 2
@@ -504,14 +493,6 @@ class PharDiff(nn.Module):
             self, protein_pos, protein_v, batch_protein, ligand_pos, ligand_v, batch_ligand, batch, time_step=None, train=True
     ):
 
-        """     protein_pos=gt_protein_pos,
-                protein_v=batch.protein_atom_feature.float(),
-                batch_protein=batch.protein_element_batch,
-
-                ligand_pos=batch.ligand_pos,
-                ligand_v=batch.ligand_atom_feature_full,
-                batch_ligand=batch.ligand_element_batch
-                """
         num_graphs = batch_protein.max().item() + 1
         
         
@@ -631,7 +612,7 @@ class PharDiff(nn.Module):
         
         
         ########################
-        # atom type loss  ## 그럼 정말 v_t와 v_t_hat의 차이로 loss를?? [더 좋은 방법이 있을 것 같은데...]
+        
         log_ligand_v_recon = F.log_softmax(pred_ligand_v, dim=-1)
         
         log_v_model_prob = self.q_v_posterior(log_ligand_v_recon, log_ligand_vt, time_step, batch_ligand)

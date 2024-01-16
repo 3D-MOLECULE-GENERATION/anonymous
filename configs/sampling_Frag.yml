@@ -5,7 +5,7 @@ model:
 
 
 sample:
-  seed: 2021
+  seed: 2024
   num_samples: 2000
   num_steps: 1000
   pos_only: False

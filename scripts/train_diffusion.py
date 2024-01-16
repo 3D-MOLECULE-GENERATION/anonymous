@@ -190,25 +190,11 @@ if __name__ == '__main__':
                 train=True,
                 
             )
-            # results = model.get_diffusion_loss(
-            #     protein_pos=gt_protein_pos,
-            #     protein_v=batch.protein_atom_feature.float(),
-            #     batch_protein=batch.protein_element_batch,
 
-            #     ligand_pos=batch.ligand_pos,
-            #     ligand_v=batch.ligand_atom_feature_full,
-            #     batch_ligand=batch.ligand_element_batch,
-            #     ligand_element_batch = batch.ligand_element_batch,
-            #     fix_node = batch.fix_node,
-            #     fix_node_batch = batch.fix_node_batch,
-            #     train=True,
-            # )
             loss, loss_pos, loss_v, energy = results['loss'], results['loss_pos'], results['loss_v'], results['energy']
             loss_dis = results['loss_dis']
             loss = loss / config.train.n_acc_batch
-            # energy_grad = torch.autograd.grad(
-            #     energy, results['pred_ligand_pos'], retain_graph=True, create_graph=True 
-            # )
+
             energy_loss = energy * (it/200000)
             if frag:
                 total_loss = loss + loss_dis + energy_loss
@@ -226,12 +212,7 @@ if __name__ == '__main__':
                     it, loss, loss_pos, loss_v, optimizer.param_groups[0]['lr'], orig_grad_norm
                 )
             )
-            #for k, v in results.items():
-            #    if torch.is_tensor(v) and v.squeeze().ndim == 0:
-                    #writer.add_scalar(f'train/{k}', v, it)
-            #writer.add_scalar('train/lr', optimizer.param_groups[0]['lr'], it)
-            #writer.add_scalar('train/grad', orig_grad_norm, it)
-            #writer.flush()
+
             wandb.log({"Training Total Loss ": loss}, commit=True)
             wandb.log({"Training Position loss ": loss_pos}, commit=True)
             wandb.log({"Training Type loss ": loss_v}, commit=True) 

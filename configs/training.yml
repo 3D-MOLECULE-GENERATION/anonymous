@@ -43,7 +43,7 @@ model:
   sync_twoup: False
 
 train:
-  seed: 2021
+  seed: 2024
   batch_size: 4
   num_workers: 4
   n_acc_batch: 1

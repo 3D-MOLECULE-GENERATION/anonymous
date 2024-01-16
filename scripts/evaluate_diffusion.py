@@ -179,10 +179,7 @@ if __name__ == '__main__':
                 #if args.verbose:
                     #logger.warning('Docking Error(Evaluation failed for %s' % f'{example_idx}_{sample_idx})')
                 continue
-            # Vina Score: 생성한 molecule의 위치 그대로의 score
-            # Vina Min: 생성한 molecule의 pose를 여러번 바꿔서 그 중 가장 낮은 score
-            # Vina Dock: Re-docking해서 나온 가장 낮은 score
-            #print(smiles)
+
 
             # now we only consider complete molecules as success
             bond_dist = eval_bond_length.bond_distance_from_mol(mol)
