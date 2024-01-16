@@ -124,6 +124,7 @@ Note: It will take some time to prepare pqdqt and pqr files when you run the eva
 ## Real-world Validation
 If you want to generate molecules for a new protein not in the test set, you should run `./Anonymous/scripts/real_world_inference.ipynb`. 
 **Remember that you need to prepare the ligand's .sdf file for creating the protein pocket and the .pdb file containing the structural information of the protein.**
+
 Typically, the above process is also necessary for performing MD simulation.
 
 ## Result
