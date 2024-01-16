@@ -35,13 +35,45 @@ conda install pyg -c pyg
 conda install rdkit openbabel tensorboard pyyaml easydict python-lmdb -c conda-forge
 ```
 ## Data
-The data used for training / evaluating the model are organized in the [data](https://drive.google.com/drive/folders/1S_GEFPvnpkiwyi22slxdzlR0-boUDCTI?usp=drive_link) Google Drive folder.
-The data used for training/evaluation would have been provided through the submission site in a folder named 'Data'.
-To train the model from scratch, you need to download the preprocessed lmdb file and split file:
+
+The data used for training/evaluation would have been provided through the submission site in a folder named  `Data`.
+
+```bash
+Data
+|__Training Data  
+|   |  # Raw complex structures of protein-ligand available from the CrossDocked2020 dataset. Proteins are specified in .pdb format, and Ligands in .sdf format.
+|   |__crossdocked_v1.1_rmsd1.0.tar.gz 
+|   |
+|   |  # Processed data that can be used for model training, obtainable through the execution of the ./Anonymous/datasets/pl_pair_dataset.py file
+|   |__crossdocked_v1.1_rmsd1.0_pocket10_processed_final.lmdb 
+|   |
+|   |  # Index storage files for each sample, used for splitting the train set and test set, or for other preprocessing purposes.
+|   |__index.pkl
+|   
+|__Vocab
+|   |   # The set of Fragments constituting the ligands of CrossDocked2020 samples, extracted through the 3D Fragmentizing Algorithm.
+|   |___vocab.txt
+|   |
+|   |   # The set of pharmacophores playing a crucial role in protein-ligand interactions, extracted through the 3D Pharmacophore Decomposition proposed in this paper.
+|   |___vocab_super.pickle
+|   
+|__Split
+|   |   # Names and index numbers of samples used directly for training and validation.
+|   |___crossdocked_pocket10_pose_split.pt
+|   |
+|   |   # Raw file for creating the crossdocked_pocket10_pose_split.pt file. It is split through pdb id.
+|   |___split_by_name.pt
+|
+|__Test Data
+|   |...
+|
+```
+
+To train the model from scratch, you need the preprocessed lmdb file and split file:
 * `crossdocked_v1.1_rmsd1.0_pocket10_processed_final.lmdb`
 * `crossdocked_pocket10_pose_split.pt`
 
-To evaluate the model on the test set, you need to download _and_ unzip the `test_set.zip`. It includes the original PDB files that will be used in Vina Docking.
+To evaluate the model on the test set, you need to unzip the `test_set.zip` in `Data` folder. It includes the original PDB files that will be used in Vina Docking.
 
 
 **If you want to process the dataset from scratch,** you need to download CrossDocked2020 v1.1 from [here](https://bits.csb.pitt.edu/files/crossdock2020/), save it into `data/CrossDocked2020`, and run the scripts in `scripts/data_preparation`:
@@ -61,7 +93,13 @@ It will generate a `index.pkl` file and create a new directory containing the or
     
     python scripts/data_preparation/split_pl_dataset.py --path data/crossdocked_v1.1_rmsd1.0_pocket10 --dest data/crossdocked_pocket10_pose_split.pt --fixed_split data/split_by_name.pt
     ```
-    
+## Note 
+If you want to directly understand the preprocessing process of the dataset for training a diffusion model that considers pharmacophores, please refer to `./Anonymous/datasets/pl_pair_dataset.py`. 
+
+If the .lmdb file does not exist, this code will automatically execute, but it will not run if it already exists. 
+
+If you have already moved all the datasets provided through the submission site to the directory, this code will not execute.
+
 ## Training
 ### Training from scratch
 ```bash
