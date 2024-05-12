@@ -1,5 +1,5 @@
 # PharDiff: Pharmacophore-aware Diffusion Model for Pocket Specific 3D Molecular Generation
-<img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/MAIN.png">
+<img src="https://github.com/3D-MOLECULE-GENERATION/anonymous/blob/main/assets/edit_main1.jpg">
 
 ## Diffusion process of proposed method
 **Note:** For a better understanding of the process, protein pockets have been excluded in the video below.
