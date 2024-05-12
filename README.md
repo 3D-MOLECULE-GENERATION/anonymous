@@ -36,7 +36,7 @@ conda install rdkit openbabel tensorboard pyyaml easydict python-lmdb -c conda-f
 ```
 ## Data
 
-The data used for training/evaluation would have been provided through the submission site in a folder named  `Data` or [Google Drive folder](https://drive.google.com/drive/folders/1qzuYX39_apCWcZ6yFMkY9RYAI8ijfmvY?usp=drive_link).
+The data used for training/evaluation would have been provided through the submission site in a folder named  `Data` or [Google Drive folder](https://drive.google.com/drive/u/4/folders/1RUX3l_fFrF6_Mg09OCnajD86PqgmnByb).
 
 ```bash
 Data
